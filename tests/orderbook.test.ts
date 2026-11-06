@@ -182,6 +182,21 @@ test("a buy stops walking when the next ask is above its limit",()=>{
 
     expect(trades.length).toBe(2);
     expect(book.asks.length).toBe(1);
-    expect(book.bids.length).toBe(1);
-    
-})
+    expect(book.bids.length).toBe(1);  
+});
+
+
+test("a buy that is filled partway through the second ask leaves the rest of it", () => {
+    const book = new OrderBook();
+    book.addOrder({ id: "1", userId: "s1", side: "sell", price: 78, qty: 10 });
+    book.addOrder({ id: "2", userId: "s2", side: "sell", price: 79, qty: 10 });
+
+    const trades = book.addOrder({ id: "3", userId: "buyer", side: "buy", price: 80, qty: 15 });
+
+    expect(trades).toEqual([
+        { price: 78, qty: 10, buyerId: "buyer", sellerId: "s1" },
+        { price: 79, qty: 5, buyerId: "buyer", sellerId: "s2" },
+    ]);
+    expect(book.asks).toEqual([{ id: "2", userId: "s2", side: "sell", price: 79, qty: 5 }]);
+    expect(book.bids).toEqual([]);
+});
