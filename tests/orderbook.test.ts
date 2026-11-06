@@ -271,3 +271,37 @@ test("cancelling a resting order removes it from the book", () => {
     expect(book.bids).toEqual([]);
     expect(book.asks).toEqual([]);
 });
+
+test.each([
+    ["zero quantity", { qty: 0 }],
+    ["negative quantity", { qty: -5 }],
+    ["fractional quantity", { qty: 2.5 }],
+    ["zero price", { price: 0 }],
+    ["price above 99", { price: 100 }],
+    ["fractional price", { price: 50.5 }],
+    ["NaN quantity", { qty: NaN }],
+])("rejects an order with %s and leaves the book untouched", (_name, bad) => {
+    const book = new OrderBook();
+    const order = { id: "1", userId: "a", side: "buy" as const, price: 70, qty: 10, ...bad };
+
+    expect(() => book.addOrder(order)).toThrow();
+    expect(book.bids).toEqual([]);
+    expect(book.asks).toEqual([]);
+});
+
+test("rejects an order with an unknown side", () => {
+    const book = new OrderBook();
+    const order = { id: "1", userId: "a", side: "hold" as any, price: 70, qty: 10 };
+
+    expect(() => book.addOrder(order)).toThrow();
+});
+
+test("accepts the lowest and highest allowed prices", () => {
+    const book = new OrderBook();
+
+    book.addOrder({ id: "1", userId: "a", side: "buy", price: 1, qty: 10 });
+    book.addOrder({ id: "2", userId: "b", side: "sell", price: 99, qty: 10 });
+
+    expect(book.bids.length).toBe(1);
+    expect(book.asks.length).toBe(1);
+});

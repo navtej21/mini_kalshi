@@ -21,6 +21,7 @@ export class OrderBook {
 
 
     addOrder(order: Order): Trade[] {
+    validateOrder(order);
     const incoming = { ...order }; // never change the caller's object
     const trades: Trade[] = [];
 
@@ -69,5 +70,18 @@ export class OrderBook {
       }
     }
     return false;
+  }
+}
+
+
+function validateOrder(order: Order): void {
+  if (order.side !== "buy" && order.side !== "sell") {
+    throw new Error("Side must be buy or sell");
+  }
+  if (!Number.isInteger(order.qty) || order.qty <= 0) {
+    throw new Error("Quantity must be a positive whole number");
+  }
+  if (!Number.isInteger(order.price) || order.price < 1 || order.price > 99) {
+    throw new Error("Price must be a whole number of cents from 1 to 99");
   }
 }
