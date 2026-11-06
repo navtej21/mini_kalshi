@@ -1,11 +1,12 @@
 import { Router } from "express";
-import { createMarket, onramp, signin, signup } from "../controller/auth";
+import authRouter from "./auth";
+import onrampRouter from "./onramp";
+import marketRouter from "./market";
 
-const router=Router();
+const router = Router();
 
-router.post("/signup",signup);
-router.post("/signin",signin);
-router.post("/onramp",onramp);
-router.post("/", createMarket);
+router.use("/auth", authRouter);
+router.use("/onramp", onrampRouter);
+router.use("/market", marketRouter);
 
 export default router;
