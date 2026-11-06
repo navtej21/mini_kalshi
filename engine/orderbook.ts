@@ -58,4 +58,16 @@ export class OrderBook {
 
     return trades;
   }
+
+
+   cancelOrder(id: string): boolean {
+    for (const side of [this.bids, this.asks]) {
+      const i = side.findIndex((o) => o.id === id);
+      if (i !== -1) {
+        side.splice(i, 1);
+        return true;
+      }
+    }
+    return false;
+  }
 }

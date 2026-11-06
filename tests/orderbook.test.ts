@@ -230,3 +230,44 @@ test("at the same ask price, the older sell order fills first", () => {
     expect(trades).toEqual([{ price: 78, qty: 10, buyerId: "buyer", sellerId: "first" }]);
     expect(book.asks).toEqual([{ id: "2", userId: "second", side: "sell", price: 78, qty: 10 }]);
 });
+
+
+test("at the same bid price, the older buy order fills first",()=>{
+    const book = new OrderBook();
+    book.addOrder({ id: "1", userId: "first", side: "buy", price: 75, qty: 10 });
+    book.addOrder({ id: "2", userId: "second", side: "buy", price: 75, qty: 10 });
+
+
+    const trades=book.addOrder({ id: "3", userId: "seller", side: "sell", price: 70, qty: 10 });
+
+    expect(trades).toEqual([{ price: 75, qty: 10, buyerId: "first", sellerId: "seller" }]);
+    expect(book.bids).toEqual([{ id: "2", userId: "second", side: "buy", price: 75, qty: 10 }]);
+    expect(book.asks).toEqual([]);
+});
+
+
+test("a partly filled order keeps its place in the queue", () => {
+    const book = new OrderBook();
+    book.addOrder({ id: "1", userId: "first", side: "sell", price: 78, qty: 10 });
+    book.addOrder({ id: "2", userId: "second", side: "sell", price: 78, qty: 10 });
+
+    book.addOrder({ id: "3", userId: "b1", side: "buy", price: 80, qty: 4 });
+    const trades = book.addOrder({ id: "4", userId: "b2", side: "buy", price: 80, qty: 8 });
+
+    expect(trades).toEqual([
+        { price: 78, qty: 6, buyerId: "b2", sellerId: "first" },
+        { price: 78, qty: 2, buyerId: "b2", sellerId: "second" },
+    ]);
+});
+
+
+test("cancelling a resting order removes it from the book", () => {
+    const book = new OrderBook();
+    book.addOrder({ id: "1", userId: "a", side: "buy", price: 70, qty: 10 });
+    book.addOrder({ id: "2", userId: "b", side: "sell", price: 90, qty: 10 });
+
+    expect(book.cancelOrder("1")).toBe(true);
+    expect(book.cancelOrder("2")).toBe(true);
+    expect(book.bids).toEqual([]);
+    expect(book.asks).toEqual([]);
+});
